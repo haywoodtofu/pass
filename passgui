@@ -1,0 +1,71 @@
+from tkinter import *
+from cryptography.fernet import Fernet
+import pyperclip
+import os
+
+root = Tk()
+root.title('Password Manager')
+
+web = Entry(root)
+web.pack()
+web.insert(0, "Website")
+web.get()
+
+un = Entry(root)
+un.pack()
+un.insert(0, "Username")
+un.get()
+
+pw = Entry(root)
+pw.pack()
+pw.insert(0, "Password")
+pw.get()
+
+folder = 'c:-'
+
+file = open(folder+'key.key', 'rb')
+key = file.read()
+file.close()
+
+def addInfo():
+    #make sure to add a check before overwrite
+    pwlist = open(folder+'store\\'+str(web.get().lower())+'.txt', 'wb')
+    message = un.get()+'\n'+pw.get()
+    encoded = message.encode()
+    f = Fernet(key)
+    encrypted = f.encrypt(encoded)
+    print("Information saved for "+str(web.get()))
+    pwlist.write(encrypted)
+    pwlist.close()
+
+def recallInfo():
+    f2 = Fernet(key)
+    try:
+        pwlist = open(folder+'store\\'+str(web.get().lower())+'.txt', 'rb')
+        text = pwlist.read()
+        decrypted = f2.decrypt(text)
+        original_message = decrypted.decode()
+        print(original_message)
+        pwlist.close()
+    except:
+        print('You have not created this information')
+    #still need to have this appear as a popup rather than print
+    #add pyperclip to allow copying
+
+def listInfo():
+    dircompile = os.listdir(folder+'store')
+    for i in dircompile:
+        print(i)
+    
+addUser = Button(root, text='Add Account Info', padx = 40, command = addInfo)
+addUser.pack()
+
+recallUser = Button(root, text='Forgot My Info', padx = 40, command = recallInfo)
+recallUser.pack()
+
+listUser = Button(root, text='List My Users', padx = 50, command = listInfo)
+listUser.pack()
+
+# keeps it open while looping
+root.mainloop()
+
